@@ -180,9 +180,8 @@ class Bot(object):
                 show_number = int(user_decision['text']) - 1
                 result = self.confirm_show(show_number=show_number, json=response, sender=sender)
             else:
-                # develop this case
-                result = False
-                show_number = 0
+                # re-try
+                self.add_show_interaction(channel, command, sender)
 
         elif len(shows) > show_range[1]:
             block = [x for x in shows]
@@ -211,7 +210,7 @@ class Bot(object):
             pass
 
     def get_bot_id(self):
-        """get users on slack organization"""
+        """get slack user id for bot"""
 
         users = self.slack_client.api_call("users.list")
 
@@ -221,6 +220,7 @@ class Bot(object):
                 break
             else:
                 bot_id = False
+
         if bot_id is not False:
             logger.debug('Bot_ID found for: {} with id: {}'.format(self.bot_name, bot_id))
             return bot_id
@@ -274,7 +274,9 @@ if __name__ == "__main__":
 
     while True:
         command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
+
         if command and channel:
             bot.handle_command(channel, command, sender)
+
         time.sleep(bot.websocket_delay)
 
