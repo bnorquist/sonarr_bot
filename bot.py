@@ -282,14 +282,15 @@ def parse_slack_output(slack_rtm_output, AT_BOT):
 
 if __name__ == "__main__":
 
-    # bot = Bot()
-    #
-    # while True:
-    #     command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
-    #
-    #     if command and channel:
-    #         bot.handle_command(channel, command, sender)
-    #
-    #     time.sleep(bot.websocket_delay)
-    #
-    pass
+    bot = Bot()
+
+    while True:
+        command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
+
+        if command and channel:
+            bot.handle_command(channel, command, sender)
+
+        time.sleep(bot.websocket_delay)
+
+
+#screen -dmS sbot bash -c 'python ~/files/code/sonarr_bot/bot.py'
