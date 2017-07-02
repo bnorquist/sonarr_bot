@@ -247,6 +247,18 @@ class Bot(object):
         else:
             pass
 
+    def test_sn_command(self, channel, command, sender):
+
+        if command.lower() == 'quality_profiles':
+            response = self.sonarrAPI.get_quality_profiles()
+            pprint.pprint(response)
+            logger.info('Getting quality profiles')
+            self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+        else:
+            logger.info('{} command not added yet'.format(command))
+            pass
+
+
 
 def parse_slack_output(slack_rtm_output, AT_BOT):
     """
@@ -270,13 +282,14 @@ def parse_slack_output(slack_rtm_output, AT_BOT):
 
 if __name__ == "__main__":
 
-    bot = Bot()
-
-    while True:
-        command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
-
-        if command and channel:
-            bot.handle_command(channel, command, sender)
-
-        time.sleep(bot.websocket_delay)
-
+    # bot = Bot()
+    #
+    # while True:
+    #     command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
+    #
+    #     if command and channel:
+    #         bot.handle_command(channel, command, sender)
+    #
+    #     time.sleep(bot.websocket_delay)
+    #
+    pass
