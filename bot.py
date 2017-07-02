@@ -244,6 +244,9 @@ class Bot(object):
         elif command.lower().startswith(self.add_show_command):
             self.add_show(channel=channel, command=command, sender=sender)
 
+        elif command.lower() == 'quality_profiles':
+            self.test_sn_command()
+
         else:
             pass
 
