@@ -245,8 +245,9 @@ class Bot(object):
         series_id = show_dict['tvdbId']
         if result is True:
             logger.info('Adding {} to Sonarr'.format(show_dict['title']))
-            json = self.sonarrAPI.add_series(tvdvId=series_id, quality_profile_id=quality_profile_id)
-            pprint.pprint(json)
+            json = self.sonarrAPI.add_series(self.sonarrAPI.constuct_series_json(tvdbId=series_id,
+                                                                                 quality_profile=quality_profile_id))
+            # pprint.pprint(json)
             message = 'Successfully subcribed to {}'.format(show_dict['title'])
             self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
         else:
