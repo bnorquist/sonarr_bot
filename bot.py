@@ -40,7 +40,7 @@ class Bot(object):
         self.get_shows_command = 'get shows'
         self.get_shows_definition = 'Posts message showing which shows & seasons are already subscribed in Sonarr'
         self.add_show_command = 'add show'
-        self.add_show_definition = 'adds show to sonarr'
+        self.add_show_definition = 'Adds show to sonarr'
 
         # sonarr things
         self.sonarrAPI = SonarrAPI(host_url=api_keys.sonarr_host_url, api_key=api_keys.sonarr_api_key)
@@ -66,7 +66,7 @@ class Bot(object):
                     seasons.append(season['seasonNumber'])
             shows[title] = seasons
         # message generator
-        block = '\n'.join([key + ' Seasons: ' + ', '.join([str(number) for number in value]) for key, value in shows.items()])
+        block = '\n'.join([key + ' - Seasons: ' + ', '.join([str(number) for number in value]) for key, value in shows.items()])
         message = "Already Subscribed to:\n```{}```".format(block)
         logger.debug('get show message sent to slack: {}'.format(message))
 
@@ -183,6 +183,7 @@ class Bot(object):
             block = []
             for index, show in enumerate(shows):
                 block.append('({}) - {}'.format(str(index + 1), show))
+
             message = 'The following shows were found: \n ```{}```\n ' \
                       'Respond with the number next to the show to subscribe.'.format('\n'.join(block))
             self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
@@ -217,7 +218,7 @@ class Bot(object):
 
         if profile_count > 1:
             # choose profile
-            message = "Please choose a quality profile to use, here are your oprtions: \n ```{}``` \n " \
+            message = "Please choose a quality profile to use, here are your options: \n ```{}``` \n " \
                       "paste the name of the profile you choose and I'll select it"\
                         .format(', '.join([key for key, value in quality_profiles.items() ]))
             self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
@@ -271,6 +272,19 @@ class Bot(object):
         else:
             logger.debug('Bot_ID not found with name: {}'.format(self.bot_name))
 
+    def help(self):
+        """help command"""
+        methods = {}
+        methods[self.get_shows_command] = self.get_shows_definition
+        methods[self.add_show_command] = self.add_show_definition
+
+        block = []
+        for command, definition in methods.items():
+            block.append("`{}` - {}".format(command, definition))
+        response = "Here is what I can do: \n{}".format('\n'.join(block))
+
+        self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
     def handle_command(self, channel, command, sender):
         """
             Receives commands directed at the bot and determines if they
@@ -279,8 +293,7 @@ class Bot(object):
         """
         logger.debug('Handling command: {} in channel: {}'.format(command, channel))
         if command.startswith(self.help_command):
-            response = "Here is what I can do: \n `{}` - {}".format(self.get_shows_command, self.get_shows_definition)
-            self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+            self.help()
 
         elif command.lower() == self.get_shows_command:
             self.get_shows(channel=channel)
