@@ -1,6 +1,6 @@
-from sonarr_wrapper.sonarr.sonarr_api import SonarrAPI
-import bot as b
 import pprint
+
+from app.sonarr_wrapper.sonarr.sonarr_api import SonarrAPI
 
 if __name__ == "__main__":
     sn = SonarrAPI(host_url='http://galileo.whatbox.ca:14212/api', api_key='61d044f4e99a43959598a1bedd0a0df9')

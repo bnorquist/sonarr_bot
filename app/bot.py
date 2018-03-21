@@ -1,9 +1,11 @@
-import time, pprint
-from slackclient import SlackClient
-from sonarr_wrapper.sonarr.sonarr_api import SonarrAPI
-from recur import Periodic
-import api_keys, sonarr_wrapper.sonarr.sonarr_api as sonarr
 import logging
+import pprint
+import time
+
+from slackclient import SlackClient
+
+from app import api_keys
+from app.sonarr_wrapper.sonarr.sonarr_api import SonarrAPI
 
 # create logger
 logger = logging.getLogger(__name__)
