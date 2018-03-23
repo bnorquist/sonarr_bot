@@ -1,6 +1,7 @@
 import logging
 import pprint
 import time
+import configparser
 
 from slackclient import SlackClient
 
@@ -23,6 +24,10 @@ ch.setFormatter(formatter)
 
 # add ch to logger
 logger.addHandler(ch)
+
+config = configparser.ConfigParser()
+
+cfg = config.read('settings.ini')
 
 
 class Bot(object):
