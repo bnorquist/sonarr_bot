@@ -5,7 +5,6 @@ sonarr_bot can: tell you what series are currently subscribed on sonarr, add a n
 __TO-DO__
 * Implement .env to store api keys (instead of api_keys.py)
 * Expand help method
-* Implement confirmation of successful subscription in bot.add_show()
 * Implement recur + get_calendar() from sonarr_api to post shows airing each night
 * Radarr methods and wrapper (for movies rather than tv shows)
 * Add tests

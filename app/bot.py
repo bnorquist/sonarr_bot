@@ -237,7 +237,9 @@ class Bot(object):
         """
         logger.debug('Handling command: {} in channel: {}'.format(command, channel))
         if command.startswith(self.help_command):
-            response = "Here is what I can do: \n `{}` - {}".format(self.get_shows_command, self.get_shows_definition)
+            response = "Here is what I can do: \n `{}` - {} \n `{}` - {}"\
+                .format(self.get_shows_command, self.get_shows_definition,
+                        self.add_show_command, self.add_show_definition)
             self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
         elif command.lower() == self.get_shows_command:
@@ -262,7 +264,6 @@ class Bot(object):
         else:
             logger.info('{} command not added yet'.format(command))
             pass
-
 
 
 def parse_slack_output(slack_rtm_output, AT_BOT):
