@@ -5,7 +5,6 @@ import configparser
 
 from slackclient import SlackClient
 
-from app import api_keys
 from app.sonarr_wrapper.sonarr.sonarr_api import SonarrAPI
 
 # create logger
@@ -301,7 +300,7 @@ class Bot(object):
         """
         logger.debug('Handling command: {} in channel: {}'.format(command, channel))
         if command.startswith(self.help_command):
-
+            self.help()
         elif command.lower() == self.get_shows_command:
             self.get_shows(channel=channel)
 
