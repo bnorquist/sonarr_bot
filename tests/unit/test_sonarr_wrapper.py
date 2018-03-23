@@ -20,6 +20,6 @@
 #     # pprint.pprint(sn.get_quality_profiles())
 #     # #pprint.pprint(sn.add_series(267002))
 #     #
-# 
+#
 #     #bot = b.Bot()
 #     #bot.get_shows()

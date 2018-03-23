@@ -46,7 +46,7 @@ class Bot(object):
         self.get_shows_command = 'get shows'
         self.get_shows_definition = 'Posts message showing which shows & seasons are already subscribed in Sonarr'
         self.add_show_command = 'add show'
-        self.add_show_definition = 'adds show to sonarr'
+        self.add_show_definition = 'Adds show to sonarr'
 
         # sonarr things
         self.sonarrAPI = SonarrAPI(host_url=config['sonarr']['sonarr_host_url'],
@@ -74,7 +74,7 @@ class Bot(object):
                     seasons.append(season['seasonNumber'])
             shows[title] = seasons
         # message generator
-        block = '\n'.join([key + ' Seasons: ' + ', '.join([str(number) for number in value]) for key, value in shows.items()])
+        block = '\n'.join([key + ' - Seasons: ' + ', '.join([str(number) for number in value]) for key, value in shows.items()])
         message = "Already Subscribed to:\n```{}```".format(block)
         logger.debug('get show message sent to slack: {}'.format(message))
 
@@ -125,6 +125,23 @@ class Bot(object):
             time.sleep(self.websocket_delay)
         return None
 
+    def get_quality_names(self):
+        """prompt user to choose a quality profile"""
+        profiles = self.sonarrAPI.get_quality_profiles()
+
+        if len(profiles) == 1:
+            logger.debug('One quality profile detected, returned profile {}'.format(profiles[0]['id']))
+            return {profiles[0]['name']: profiles[0]['id']}, len(profiles)
+
+        elif len(profiles) > 1:
+            profile_names = {}
+            for profile in profiles:
+                profile_names[profile['name']] = profile['id']
+            logger.debug('{} profiles found'.format(len(profiles)))
+            return profile_names, len(profiles)
+        else:
+            logger.debug('No profiles detected')
+
     def confirm_show(self, show_number, json, sender):
         show_list = self.sonarr_response_handler(json)
         message = 'Do you want to subscribe to `{}`?'.format(show_list[show_number])
@@ -174,6 +191,7 @@ class Bot(object):
             block = []
             for index, show in enumerate(shows):
                 block.append('({}) - {}'.format(str(index + 1), show))
+
             message = 'The following shows were found: \n ```{}```\n ' \
                       'Respond with the number next to the show to subscribe.'.format('\n'.join(block))
             self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
@@ -203,15 +221,42 @@ class Bot(object):
             show_number = 0
             result = self.confirm_show(show_number=show_number, json=response, sender=sender)
 
-        return result, response[show_number]
+        # choose quality profile if necessary
+        quality_profiles, profile_count = self.get_quality_names()
+
+        if profile_count > 1:
+            # choose profile
+            message = "Please choose a quality profile to use, here are your options: \n ```{}``` \n " \
+                      "paste the name of the profile you choose and I'll select it"\
+                        .format(', '.join([key for key, value in quality_profiles.items() ]))
+            self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
+
+            user_decision = self.listen_for_response(user_id=sender, channel=channel)
+            logger.info('user chose {}'.format(user_decision))
+
+            if user_decision['text'] in [key for key, value in quality_profiles.items()]:
+                quality_profile_id = quality_profiles[user_decision['text']]
+
+            else:
+                # error message and retry
+                self.slack_client.api_call("chat.postMessage", channel=channel,
+                                           text='invalid entry, try again', as_user=True)
+        else:
+            # default to one quality profile if there is only one
+            quality_profile_name = [key for key, value in quality_profiles.items()][0]
+            quality_profile_id = [value for key, value in quality_profiles.items()][0]
+            logger.debug('Discovered one quality profile: {}'.format(quality_profile_name))
+
+        return result, response[show_number], quality_profile_id
 
     def add_show(self, channel, command, sender):
-        result, show_dict = self.add_show_interaction(channel, command, sender)
+        result, show_dict, quality_profile_id = self.add_show_interaction(channel, command, sender)
         series_id = show_dict['tvdbId']
         if result is True:
             logger.info('Adding {} to Sonarr'.format(show_dict['title']))
-            json = self.sonarrAPI.add_series(tvdvId=series_id)
-            pprint.pprint(json)
+            json = self.sonarrAPI.add_series(self.sonarrAPI.constuct_series_json(tvdbId=series_id,
+                                                                                 quality_profile=quality_profile_id))
+            # pprint.pprint(json)
             message = 'Successfully subcribed to {}'.format(show_dict['title'])
             self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
         else:
@@ -235,6 +280,19 @@ class Bot(object):
         else:
             logger.debug('Bot_ID not found with name: {}'.format(self.bot_name))
 
+    def help(self):
+        """help command"""
+        methods = {}
+        methods[self.get_shows_command] = self.get_shows_definition
+        methods[self.add_show_command] = self.add_show_definition
+
+        block = []
+        for command, definition in methods.items():
+            block.append("`{}` - {}".format(command, definition))
+        response = "Here is what I can do: \n{}".format('\n'.join(block))
+
+        self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
     def handle_command(self, channel, command, sender):
         """
             Receives commands directed at the bot and determines if they
@@ -243,10 +301,6 @@ class Bot(object):
         """
         logger.debug('Handling command: {} in channel: {}'.format(command, channel))
         if command.startswith(self.help_command):
-            response = "Here is what I can do: \n `{}` - {} \n `{}` - {}"\
-                .format(self.get_shows_command, self.get_shows_definition,
-                        self.add_show_command, self.add_show_definition)
-            self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
         elif command.lower() == self.get_shows_command:
             self.get_shows(channel=channel)
@@ -255,7 +309,7 @@ class Bot(object):
             self.add_show(channel=channel, command=command, sender=sender)
 
         elif command.lower() == 'quality_profiles':
-            self.test_sn_command()
+            self.test_sn_command(channel=channel, command=command, sender=sender)
 
         else:
             pass
@@ -263,9 +317,9 @@ class Bot(object):
     def test_sn_command(self, channel, command, sender):
 
         if command.lower() == 'quality_profiles':
+            logger.info('Getting quality profiles')
             response = self.sonarrAPI.get_quality_profiles()
             pprint.pprint(response)
-            logger.info('Getting quality profiles')
             self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
         else:
             logger.info('{} command not added yet'.format(command))
