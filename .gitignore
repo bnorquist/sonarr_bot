@@ -103,3 +103,5 @@ api_keys.py
 
 # custom
 .idea
+.DS_Store
+*.ini
