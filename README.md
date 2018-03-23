@@ -1,6 +1,9 @@
 # sonarr_bot
 
-sonarr_bot can: tell you what series are currently subscribed on sonarr, add a new series, tell you what shows will be airing that day, and search for and download movies using radarr (fork of sonarr)
+*sonarr_bot can* 
+* tell you what series are currently subscribed on sonarr
+* add a new series, tell you what shows will be airing that day and 
+* *eventually*search for and download movies using radarr (fork of sonarr)
 
 __TO-DO__
 * Implement confirmation of successful subscription in bot.add_show()
