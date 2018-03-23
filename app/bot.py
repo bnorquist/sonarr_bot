@@ -26,21 +26,20 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 config = configparser.ConfigParser()
-
-cfg = config.read('settings.ini')
+config.read('settings.ini')
 
 
 class Bot(object):
 
     def __init__(self):
         # slack things
-        self.slack_client = SlackClient(api_keys.slack_key)
-        self.bot_name = api_keys.bot_name
+        self.slack_client = SlackClient(config['slack']['slack_key'])
+        self.bot_name = config['slack']['bot_name']
         self.connection = self.connect_to_slack()
         self.bot_id = self.get_bot_id()
         self.at_bot = '<@{}>'.format(self.bot_id)
         self.websocket_delay = 1 # 1 second delay between reading from firehose
-        self.listen_time = 10 # bot will listen for the number of seconds difference between websocket_delay and listen_time
+        self.listen_time = 10 # bot will listen for number of seconds difference between websocket_delay & listen_time
 
         # slack commands & definitions
         self.help_command = 'help'
@@ -50,7 +49,9 @@ class Bot(object):
         self.add_show_definition = 'adds show to sonarr'
 
         # sonarr things
-        self.sonarrAPI = SonarrAPI(host_url=api_keys.sonarr_host_url, api_key=api_keys.sonarr_api_key)
+        self.sonarrAPI = SonarrAPI(host_url=config['sonarr']['sonarr_host_url'],
+                                   api_key=config['sonarr']['sonarr_api_key']
+                                   )
 
     def connect_to_slack(self):
         if self.slack_client.rtm_connect():
