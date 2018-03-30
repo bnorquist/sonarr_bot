@@ -13,8 +13,8 @@ __Setup__
 4. profit
 
 __TO-DO__
-* Implement confirmation of successful subscription in bot.add_show()
-* Implement recur + get_calendar() from sonarr_api to post shows airing each night
+* create set reminder command
+* get_calendar() from sonarr_api to post shows airing each night
 * Radarr methods and wrapper (for movies rather than tv shows)
 * Add tests
 * Heroku or server deployment
