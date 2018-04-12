@@ -105,3 +105,4 @@ api_keys.py
 .idea
 .DS_Store
 *.ini
+.vscode/
