@@ -137,11 +137,11 @@ class Bot(object):
         user_decision = self.listen_for_response(user_id=sender, channel=channel)
         log.debug('Add show user decision slack response: {}'.format(user_decision))
 
-        if user_decision is not None and user_decision['text'].lower() == 'yes':
+        if user_decision and user_decision['text'].lower() == 'yes':
             log.info('User chose to subscribe')
             message = 'Subscribing to `{}`...'.format(show_list[show_number])
             result = True
-        elif user_decision is not None:
+        elif user_decision:
             log.info('User chose not to subscribe')
             message = 'I did not subscribe to `{}`'.format(show_list[show_number])
             result = False
@@ -178,7 +178,7 @@ class Bot(object):
             # listen for response and add show if number is returned
             user_decision = self.listen_for_response(user_id=sender, channel=channel)
             log.debug('range choice add_show() user decision {}'.format(user_decision))
-            if user_decision is not None and \
+            if user_decision and \
                     self.is_number_between(user_decision['text'], start=show_range[0], end=show_range[1]):
                 log.debug('User chose valid show number to add: {}'.format(user_decision['text']))
 
