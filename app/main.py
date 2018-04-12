@@ -49,7 +49,7 @@ class Bot(object):
             title = show['title']
             seasons = []
             for season in show['seasons']:
-                if season['monitored'] is True:
+                if season['monitored']:
                     seasons.append(season['seasonNumber'])
             shows[title] = seasons
         # message generator
@@ -155,7 +155,7 @@ class Bot(object):
 
     def add_show_interaction(self, channel, command, sender):
         log.debug('Adding show')
-
+        try:
         show_parameter = command.split(self.add_show_command)[1]
         response = self.sonarrAPI.lookup_series(query=show_parameter)
 
@@ -229,35 +229,30 @@ class Bot(object):
         return result, response[show_number], quality_profile_id
 
     def add_show(self, channel, command, sender):
-        result, show_dict, quality_profile_id = self.add_show_interaction(channel, command, sender)
-        series_id = show_dict['tvdbId']
-        if result is True:
-            log.info('Adding {} to Sonarr'.format(show_dict['title']))
-            json = self.sonarrAPI.add_series(self.sonarrAPI.constuct_series_json(tvdbId=series_id,
-                                                                                 quality_profile=quality_profile_id))
-            # pprint.pprint(json)
-            message = 'Successfully subcribed to {}'.format(show_dict['title'])
-            self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
-        else:
-            pass
+        try
+            result, show_dict, quality_profile_id = self.add_show_interaction(channel, command, sender)
+            series_id = show_dict['tvdbId']
+            if result:
+                log.info('Adding {} to Sonarr'.format(show_dict['title']))
+                series_json = self.sonarrAPI.constuct_series_json(tvdbId=series_id, quality_profile=quality_profile_id)
+                self.sonarrAPI.add_series()
+                message = 'Successfully subcribed to {}'.format(show_dict['title'])
+                self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
+        except Exception:
+            log.info('Show addition error', exc_info=True)
+            continue
 
     def get_bot_id(self):
         """get slack user id for bot"""
-
+        bot_id = None
         users = self.slack_client.api_call("users.list")
-
         for user in users['members']:
             if user['name'] == self.bot_name:
                 bot_id = user['id']
+                log.debug('Bot_ID found for: {} with id: {}'.format(self.bot_name, bot_id))
                 break
-            else:
-                bot_id = False
-
-        if bot_id is not False:
-            log.debug('Bot_ID found for: {} with id: {}'.format(self.bot_name, bot_id))
-            return bot_id
-        else:
-            log.debug('Bot_ID not found with name: {}'.format(self.bot_name))
+        if not bot_id: log.debug('Bot_ID not found with name: {}'.format(self.bot_name))
+        return bot_id
 
     def help(self):
         """help command"""
@@ -326,16 +321,12 @@ def parse_slack_output(slack_rtm_output, AT_BOT):
 
 
 if __name__ == "__main__":
-
+    log.info('Initializing bot')
     bot = Bot()
-    log.info('Bot initialized')
 
     while True:
         command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
-
-        if command and channel:
-            bot.handle_command(channel, command, sender)
-
+        if command and channel: bot.handle_command(channel, command, sender)
         time.sleep(bot.websocket_delay)
 
 
