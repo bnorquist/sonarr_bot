@@ -10,6 +10,9 @@ config['sonarr'] = {'sonarr_host_url': input('enter sonarr host url: '),
                     'sonarr_api_key': input('enter sonarr api key: ')
                     }
 
+config['schedule'] = {
+                    'schedule_path': 'app/lib/schedule.json'
+                     }
 
 with open('app/settings.ini', 'w') as cfgfile:
     config.write(cfgfile)

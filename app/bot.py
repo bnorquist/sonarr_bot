@@ -2,6 +2,7 @@ import logging
 import pprint
 import time
 import configparser
+import os
 
 from slackclient import SlackClient
 
@@ -51,6 +52,9 @@ class Bot(object):
         self.sonarrAPI = SonarrAPI(host_url=config['sonarr']['sonarr_host_url'],
                                    api_key=config['sonarr']['sonarr_api_key']
                                    )
+        # reminders
+        self.schedule_json_path = config['schedule']['schedule_path']
+        self.schedule_modified_timestamp = os.path.getmtime(self.schedule_json_path)
 
     def connect_to_slack(self):
         if self.slack_client.rtm_connect():
@@ -345,6 +349,15 @@ def parse_slack_output(slack_rtm_output, AT_BOT):
     return None, None, None
 
 
+def scheduler(bot_instance):
+    """open config if file has changed"""
+    if bot_instance.schedule_modified_timestamp == os.path.getmtime(bot_instance.schedule_json_path):
+        # check if it is time to post calender, otherwise do nothing
+        pass
+    else:
+        # reload schedule
+        pass
+
 if __name__ == "__main__":
 
     bot = Bot()
@@ -356,6 +369,7 @@ if __name__ == "__main__":
             bot.handle_command(channel, command, sender)
 
         time.sleep(bot.websocket_delay)
+        scheduler(bot)
 
 
 #screen -dmS sbot bash -c 'python ~/files/code/sonarr_bot/bot.py'
