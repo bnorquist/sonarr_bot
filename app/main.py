@@ -156,75 +156,75 @@ class Bot(object):
     def add_show_interaction(self, channel, command, sender):
         log.debug('Adding show')
         try:
-        show_parameter = command.split(self.add_show_command)[1]
-        response = self.sonarrAPI.lookup_series(query=show_parameter)
+            show_parameter = command.split(self.add_show_command)[1]
+            response = self.sonarrAPI.lookup_series(query=show_parameter)
 
-        shows = self.sonarr_response_handler(response)
+            shows = self.sonarr_response_handler(response)
 
-        # respond based on whether one or multiple shows were returned
-        show_range = [1, 4]
+            # respond based on whether one or multiple shows were returned
+            show_range = [1, 4]
 
-        # if more than 1 show is returned provide a choice of what to subscribe to
-        if 1 < len(shows) <= show_range[1]:
-            log.debug('Less than 4 shows, providing list choice')
-            block = []
-            for index, show in enumerate(shows):
-                block.append('({}) - {}'.format(str(index + 1), show))
+            # if more than 1 show is returned provide a choice of what to subscribe to
+            if 1 < len(shows) <= show_range[1]:
+                log.debug('Less than 4 shows, providing list choice')
+                block = []
+                for index, show in enumerate(shows):
+                    block.append('({}) - {}'.format(str(index + 1), show))
 
-            message = 'The following shows were found: \n ```{}```\n ' \
-                      'Respond with the number next to the show to subscribe.'.format('\n'.join(block))
-            self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
+                message = 'The following shows were found: \n ```{}```\n ' \
+                          'Respond with the number next to the show to subscribe.'.format('\n'.join(block))
+                self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
 
-            # listen for response and add show if number is returned
-            user_decision = self.listen_for_response(user_id=sender, channel=channel)
-            log.debug('range choice add_show() user decision {}'.format(user_decision))
-            if user_decision and \
-                    self.is_number_between(user_decision['text'], start=show_range[0], end=show_range[1]):
-                log.debug('User chose valid show number to add: {}'.format(user_decision['text']))
+                # listen for response and add show if number is returned
+                user_decision = self.listen_for_response(user_id=sender, channel=channel)
+                log.debug('range choice add_show() user decision {}'.format(user_decision))
+                if user_decision and \
+                        self.is_number_between(user_decision['text'], start=show_range[0], end=show_range[1]):
+                    log.debug('User chose valid show number to add: {}'.format(user_decision['text']))
 
-                show_number = int(user_decision['text']) - 1
+                    show_number = int(user_decision['text']) - 1
+                    result = self.confirm_show(show_number=show_number, json=response, sender=sender)
+                else:
+                    # re-try
+                    self.add_show_interaction(channel, command, sender)
+
+            elif len(shows) > show_range[1]:
+                block = [x for x in shows]
+                message = 'The following shows were found: \n ```{}```\n Please refine your search.'.format(', '.join(block))
+                # post to slack
+                self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
+                result = False
+                show_number = 0
+
+            else:
+                show_number = 0
                 result = self.confirm_show(show_number=show_number, json=response, sender=sender)
+
+            # choose quality profile if necessary
+            quality_profiles, profile_count = self.get_quality_names()
+
+            if profile_count > 1:
+                # choose profile
+                message = "Please choose a quality profile to use, here are your options: \n ```{}``` \n " \
+                          "paste the name of the profile you choose and I'll select it"\
+                            .format(', '.join([key for key, value in quality_profiles.items() ]))
+                self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
+
+                user_decision = self.listen_for_response(user_id=sender, channel=channel)
+                log.info('user chose {}'.format(user_decision))
+
+                if user_decision['text'] in [key for key, value in quality_profiles.items()]:
+                    quality_profile_id = quality_profiles[user_decision['text']]
+
+                else:
+                    # error message and retry
+                    self.slack_client.api_call("chat.postMessage", channel=channel,
+                                               text='invalid entry, try again', as_user=True)
             else:
-                # re-try
-                self.add_show_interaction(channel, command, sender)
-
-        elif len(shows) > show_range[1]:
-            block = [x for x in shows]
-            message = 'The following shows were found: \n ```{}```\n Please refine your search.'.format(', '.join(block))
-            # post to slack
-            self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
-            result = False
-            show_number = 0
-
-        else:
-            show_number = 0
-            result = self.confirm_show(show_number=show_number, json=response, sender=sender)
-
-        # choose quality profile if necessary
-        quality_profiles, profile_count = self.get_quality_names()
-
-        if profile_count > 1:
-            # choose profile
-            message = "Please choose a quality profile to use, here are your options: \n ```{}``` \n " \
-                      "paste the name of the profile you choose and I'll select it"\
-                        .format(', '.join([key for key, value in quality_profiles.items() ]))
-            self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
-
-            user_decision = self.listen_for_response(user_id=sender, channel=channel)
-            log.info('user chose {}'.format(user_decision))
-
-            if user_decision['text'] in [key for key, value in quality_profiles.items()]:
-                quality_profile_id = quality_profiles[user_decision['text']]
-
-            else:
-                # error message and retry
-                self.slack_client.api_call("chat.postMessage", channel=channel,
-                                           text='invalid entry, try again', as_user=True)
-        else:
-            # default to one quality profile if there is only one
-            quality_profile_name = [key for key, value in quality_profiles.items()][0]
-            quality_profile_id = [value for key, value in quality_profiles.items()][0]
-            log.debug('Discovered one quality profile: {}'.format(quality_profile_name))
+                # default to one quality profile if there is only one
+                quality_profile_name = [key for key, value in quality_profiles.items()][0]
+                quality_profile_id = [value for key, value in quality_profiles.items()][0]
+                log.debug('Discovered one quality profile: {}'.format(quality_profile_name))
 
         return result, response[show_number], quality_profile_id
 
