@@ -132,21 +132,24 @@ class SonarrAPI(object):
 
         # get root folder path
         root = self.get_root_folder()[0]['path']
-        series_json = {
-            'title': s_dict['title'],
-            'seasons': s_dict['seasons'],
-            'path': root + s_dict['title'],
-            'qualityProfileId': quality_profile,
-            'seasonFolder': True,
-            'monitored': True,
-            'tvdbId': tvdbId,
-            'images': s_dict['images'],
-            'titleSlug': s_dict['titleSlug'],
-            "addOptions": {
-                          "ignoreEpisodesWithFiles": True,
-                          "ignoreEpisodesWithoutFiles": True
-                        }
-                    }
+        series_json =\
+            {
+                'title': s_dict['title'],
+                'seasons': s_dict['seasons'],
+                'path': root + s_dict['title'],
+                'qualityProfileId': quality_profile,
+                'seasonFolder': True,
+                'monitored': True,
+                'tvdbId': tvdbId,
+                'images': s_dict['images'],
+                'titleSlug': s_dict['titleSlug'],
+                "addOptions":
+                {
+                    "ignoreEpisodesWithFiles": True,
+                    "ignoreEpisodesWithoutFiles": False,
+                    "searchForMissingEpisodes": True,
+                },
+            }
         return series_json
 
     def add_series(self, series_json):
