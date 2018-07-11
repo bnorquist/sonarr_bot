@@ -4,7 +4,7 @@
 *sonarr_bot can* 
 * tell you what series are currently subscribed on sonarr
 * add a new series, tell you what shows will be airing that day and 
-* *eventually*search for and download movies using radarr (fork of sonarr)
+
 
 __Setup__
 1. run `setup.py`
@@ -18,4 +18,8 @@ __TO-DO__
 * Radarr methods and wrapper (for movies rather than tv shows)
 * Add tests
 * Heroku or server deployment
+* *eventually*search for and download movies using radarr (fork of sonarr)
 
+### Documentation
+
+[Sonarr API Documentation](https://github.com/Sonarr/Sonarr/wiki/API)

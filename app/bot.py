@@ -358,6 +358,7 @@ def scheduler(bot_instance):
         # reload schedule
         pass
 
+
 if __name__ == "__main__":
 
     bot = Bot()
