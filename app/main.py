@@ -32,6 +32,7 @@ class Bot(object):
 
         # sonarr things
         self.sonarrAPI = SonarrAPI(host_url=settings.SONARR_HOST_URL, api_key=settings.SONARR_API_KEY)
+        self.test_sonarr_connection()
 
     def connect_to_slack(self):
         if self.slack_client.rtm_connect():
@@ -41,10 +42,21 @@ class Bot(object):
             log.warning('{} not connected to slack :('.format(self.bot_name))
             return False
 
+    def test_sonarr_connection(self):
+        try:
+            status = self.sonarrAPI.get_system_status()
+        except Exception as e:
+            log.error('Sonarr connection URL incorrect: {}'.format(str(e)))
+        if status.get('error', None) == 'Unauthorized':
+            log.error('API key incorrect')
+        else:
+            log.info('Connected to Sonarr successfully')
+
     def get_shows(self, channel):
         """Post what shows are already available"""
         log.debug('retrieving shows...')
         series = self.sonarrAPI.get_series()
+        log.debug(str(series))
         shows = {}
         for show in series:
             title = show['title']
