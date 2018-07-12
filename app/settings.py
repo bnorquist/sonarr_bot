@@ -10,7 +10,9 @@ SONARR_HOST_URL = os.getenv('SONARR_HOST_URL')
 SONARR_API_KEY = os.getenv('SONARR_API_KEY')
 LOG_FORMAT = '%(asctime)s - %(name)-4s - %(levelname)-4s - %(message)s'
 
-
+# logging setup
+if not os.path.exists('../log/bot.log'):
+    os.mkdir('../log/')
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT, filename='../log/bot.log', filemode='a')
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)

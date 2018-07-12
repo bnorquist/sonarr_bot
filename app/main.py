@@ -4,11 +4,12 @@ import logging
 import settings
 import pprint
 import time
-import configparser
 from slackclient import SlackClient
 from sonarr import SonarrAPI
+import os
 
 log = logging.getLogger(__name__)
+
 
 class Bot(object):
 
