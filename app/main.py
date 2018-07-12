@@ -214,18 +214,18 @@ class Bot(object):
 
             # choose quality profile if necessary
             quality_profiles, profile_count = self.get_quality_names()
-
+            print(quality_profiles)
             if profile_count > 1:
                 # choose profile
                 message = "Please choose a quality profile to use, here are your options: \n ```{}``` \n " \
                           "paste the name of the profile you choose and I'll select it"\
-                            .format(', '.join([key for key, value in quality_profiles.items() ]))
+                            .format(', '.join([key for key, value in quality_profiles.items()]))
                 self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
 
                 user_decision = self.listen_for_response(user_id=sender, channel=channel)
                 log.info('user chose {}'.format(user_decision))
 
-                if user_decision['text'] in [key for key, value in quality_profiles.items()]:
+                if user_decision['text'] in quality_profiles:
                     quality_profile_id = quality_profiles[user_decision['text']]
 
                 else:
@@ -306,7 +306,7 @@ class Bot(object):
 
         if command.lower() == 'quality_profiles':
             log.info('Getting quality profiles')
-            response = self.sonarrAPI.get_quality_profiles()
+            response = '```' + str(self.sonarrAPI.get_quality_profiles()) + '```'
             pprint.pprint(response)
             self.slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
         else:
