@@ -225,11 +225,15 @@ class Bot(object):
                 quality_profile_name = [key for key, value in quality_profiles.items()][0]
                 quality_profile_id = [value for key, value in quality_profiles.items()][0]
                 log.debug('Discovered one quality profile: {}'.format(quality_profile_name))
+            return result, response[show_number], quality_profile_id
 
-        return result, response[show_number], quality_profile_id
+        except Exception as e:
+            print('add show interaction fail: \n {}'.format(str(e)))
+
+
 
     def add_show(self, channel, command, sender):
-        try
+        try:
             result, show_dict, quality_profile_id = self.add_show_interaction(channel, command, sender)
             series_id = show_dict['tvdbId']
             if result:
@@ -240,7 +244,6 @@ class Bot(object):
                 self.slack_client.api_call("chat.postMessage", channel=channel, text=message, as_user=True)
         except Exception:
             log.info('Show addition error', exc_info=True)
-            continue
 
     def get_bot_id(self):
         """get slack user id for bot"""
