@@ -143,8 +143,9 @@ class SonarrAPI(object):
             'images': s_dict['images'],
             'titleSlug': s_dict['titleSlug'],
             "addOptions": {
-                          "ignoreEpisodesWithFiles": True,
-                          "ignoreEpisodesWithoutFiles": True
+                "ignoreEpisodesWithFiles": True,
+                "ignoreEpisodesWithoutFiles": False,
+                "searchForMissingEpisodes": True,
                         }
                     }
         return series_json
