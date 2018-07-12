@@ -231,8 +231,6 @@ class Bot(object):
         except Exception as e:
             print('add show interaction fail: \n {}'.format(str(e)))
 
-
-
     def add_show(self, channel, command, sender):
         try:
             result, show_dict, quality_profile_id = self.add_show_interaction(channel, command, sender)
@@ -255,7 +253,8 @@ class Bot(object):
                 bot_id = user['id']
                 log.debug('Bot_ID found for: {} with id: {}'.format(self.bot_name, bot_id))
                 break
-        if not bot_id: log.debug('Bot_ID not found with name: {}'.format(self.bot_name))
+        if not bot_id:
+            log.debug('Bot_ID not found with name: {}'.format(self.bot_name))
         return bot_id
 
     def help(self):
@@ -330,7 +329,8 @@ if __name__ == "__main__":
 
     while True:
         command, channel, sender = parse_slack_output(bot.slack_client.rtm_read(), bot.at_bot)
-        if command and channel: bot.handle_command(channel, command, sender)
+        if command and channel:
+            bot.handle_command(channel, command, sender)
         time.sleep(bot.websocket_delay)
 
 
