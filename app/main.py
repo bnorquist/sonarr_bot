@@ -110,7 +110,6 @@ class Bot(object):
             output_list = bot.slack_client.rtm_read()
             if output_list and len(output_list) > 0:
                 for output in output_list:
-                    # print(output)
                     if 'user' and 'text' in output and output['user'] == user_id and output['channel'] == channel:
                         return output
 
